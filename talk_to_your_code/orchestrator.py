@@ -85,6 +85,7 @@ class CodeChatOrchestrator:
             repo_id=repo_id,
             query=query,
             plan=plan,
+            planner_context=planner_context,
             answer=answer,
             intermediate_steps=steps,
             context=context,

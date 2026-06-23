@@ -129,6 +129,9 @@ if st.button("Ask", type="primary"):
         icon = "✅" if step["status"] == "ok" else "⚠️" if step["status"] == "warning" else "❌"
         st.write(f"{icon} **{step['name']}** — {step['detail']}")
 
+    with st.expander("Query Planner Context", expanded=False):
+        st.text(result["planner_context"])
+
     with st.expander("Query plan", expanded=False):
         st.json(result["plan"])
 

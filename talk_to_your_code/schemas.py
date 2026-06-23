@@ -170,6 +170,7 @@ class ChatResult(BaseModel):
     repo_id: int
     query: str
     plan: QueryPlan
+    planner_context: str = ""
     answer: StructuredAnswer
     intermediate_steps: list[IntermediateStep]
     context: BuiltContext
