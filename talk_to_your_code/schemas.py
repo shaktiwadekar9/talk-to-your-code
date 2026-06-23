@@ -177,6 +177,8 @@ class ChatResult(BaseModel):
     intermediate_steps: list[IntermediateStep]
     context: BuiltContext
     hits: list[RetrievalHit]
+    timings: list[TimingStep] = []
+    total_ms: float = 0.0
 
 
 class RepoRecord(BaseModel):
@@ -208,3 +210,7 @@ class ChatRequest(BaseModel):
     query: str
     max_context_chars: int = Field(default=45000, ge=4000, le=200000)
     top_k: int = Field(default=10, ge=1, le=30)
+
+class TimingStep(BaseModel):
+    name: str
+    ms: float

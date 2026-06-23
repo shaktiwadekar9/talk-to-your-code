@@ -27,6 +27,7 @@ class Settings:
     default_top_k: int = int(_env("TYC_DEFAULT_TOP_K", "10"))
     max_file_bytes: int = int(_env("TYC_MAX_FILE_BYTES", str(1_000_000)))
     embedding_batch_size: int = int(_env("TYC_EMBEDDING_BATCH_SIZE", "16"))
+    use_model_for_token_count: bool = _env("TYC_USE_MODEL_FOR_TOKEN_COUNT", "false").lower() == "true"
 
 
 DEFAULT_SETTINGS = Settings()

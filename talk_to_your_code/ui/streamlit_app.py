@@ -169,3 +169,12 @@ if st.button("Ask", type="primary"):
 
     with st.expander("Built LLM context", expanded=False):
         st.text(result["context"]["context_text"])
+    
+    with st.expander("Performance profile", expanded=False):
+        total_ms = result.get("total_ms", 0)
+        st.caption(f"Total time: {total_ms / 1000:.2f} seconds")
+
+        timings = result.get("timings", [])
+        if timings:
+            for item in timings:
+                st.write(f"**{item['name']}**: {item['ms'] / 1000:.2f}s")
