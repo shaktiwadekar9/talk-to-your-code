@@ -138,6 +138,7 @@ class BuiltContext(BaseModel):
     omitted: list[str]
     used_chars: int
     max_chars: int
+    used_tokens: int = 0
 
 
 class AnswerEvidence(BaseModel):
@@ -171,6 +172,7 @@ class ChatResult(BaseModel):
     query: str
     plan: QueryPlan
     planner_context: str = ""
+    planner_context_tokens: int = 0
     answer: StructuredAnswer
     intermediate_steps: list[IntermediateStep]
     context: BuiltContext

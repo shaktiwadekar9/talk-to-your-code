@@ -53,6 +53,10 @@ class CodeChatOrchestrator:
         steps.append(IntermediateStep(name="Load index", detail=f"Loaded {len(index.chunks)} chunks from SQLite for {repo.name}."))
 
         planner_context = index.planner_context()
+        planner_context_tokens = self.ollama.count_tokens(
+            self.settings.planner_model,
+            planner_context,
+        )
         plan = self.ollama.plan_query(query, top_k=top_k, repo_context=planner_context)
         plan.top_k = top_k
         steps.append(
@@ -61,6 +65,7 @@ class CodeChatOrchestrator:
                 detail=(
                     f"Planned as {plan.query_type} with mode {plan.retrieval_mode}. "
                     f"Planner saw repo map, file paths, and parsed symbols."
+                    f"Planner context tokens: {planner_context_tokens}."
                 ),
             )
         )
@@ -71,10 +76,18 @@ class CodeChatOrchestrator:
 
         builder = ContextBuilder(index, max_context_chars=max_context_chars)
         context = builder.build(query, plan, hits)
+        context.used_tokens = self.ollama.count_tokens(
+            self.settings.chat_model,
+            context.context_text,
+        )
         steps.append(
             IntermediateStep(
                 name="Context build",
-                detail=f"Used {context.used_chars}/{context.max_chars} chars. Included {len(context.included)} snippets, omitted {len(context.omitted)}.",
+                detail=(
+                    f"Used {context.used_chars}/{context.max_chars} chars "
+                    f"({context.used_tokens} tokens). "
+                    f"Included {len(context.included)} snippets, omitted {len(context.omitted)}."
+                ),
             )
         )
 
@@ -86,6 +99,7 @@ class CodeChatOrchestrator:
             query=query,
             plan=plan,
             planner_context=planner_context,
+            planner_context_tokens=planner_context_tokens,
             answer=answer,
             intermediate_steps=steps,
             context=context,

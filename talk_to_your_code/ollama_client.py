@@ -198,6 +198,41 @@ Return a concise grounded answer. Include evidence for every important claim.
         except ValidationError:
             parsed = json.loads(content)
             return schema_model.model_validate(parsed)
+        
+    def count_tokens(self, model: str, text: str) -> int:
+        """Count real input tokens using Ollama's model tokenizer/eval path."""
+        if not text.strip():
+            return 0
+
+        payload = {
+            "model": model,
+            "prompt": text,
+            "stream": False,
+            "options": {
+                "num_predict": 0,
+                "temperature": 0.0,
+            },
+        }
+
+        response = requests.post(
+            f"{self.base_url}/api/generate",
+            json=payload,
+            timeout=300,
+        )
+
+        # Some Ollama versions may not like num_predict=0.
+        # Fallback still gives real prompt_eval_count, but generates 1 token.
+        if not response.ok:
+            payload["options"]["num_predict"] = 1
+            response = requests.post(
+                f"{self.base_url}/api/generate",
+                json=payload,
+                timeout=300,
+            )
+
+        response.raise_for_status()
+        data = response.json()
+        return int(data.get("prompt_eval_count", 0))
 
     @staticmethod
     def _normalize(arr: np.ndarray) -> np.ndarray:
