@@ -12,6 +12,7 @@ dependencies = [
     "requests>=2.32.0",
     "numpy>=1.26.0",
     "pathspec>=0.12.1",
+    "code-graph-ai-summarizer",
 ]
 
 [project.scripts]
@@ -20,6 +21,9 @@ tyc = "talk_to_your_code.cli:main"
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["talk_to_your_code*"]
+
+[tool.uv.sources]
+code-graph-ai-summarizer = { git = "https://github.com/shaktiwadekar9/code-graph-ai-summarizer.git" }
 
 [build-system]
 requires = ["setuptools>=68"]

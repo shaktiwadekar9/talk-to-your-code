@@ -138,6 +138,7 @@ class BuiltContext(BaseModel):
     omitted: list[str]
     used_chars: int
     max_chars: int
+    used_tokens: int = 0
 
 
 class AnswerEvidence(BaseModel):
@@ -170,10 +171,14 @@ class ChatResult(BaseModel):
     repo_id: int
     query: str
     plan: QueryPlan
+    planner_context: str = ""
+    planner_context_tokens: int = 0
     answer: StructuredAnswer
     intermediate_steps: list[IntermediateStep]
     context: BuiltContext
     hits: list[RetrievalHit]
+    timings: list[TimingStep] = []
+    total_ms: float = 0.0
 
 
 class RepoRecord(BaseModel):
@@ -205,3 +210,7 @@ class ChatRequest(BaseModel):
     query: str
     max_context_chars: int = Field(default=45000, ge=4000, le=200000)
     top_k: int = Field(default=10, ge=1, le=30)
+
+class TimingStep(BaseModel):
+    name: str
+    ms: float

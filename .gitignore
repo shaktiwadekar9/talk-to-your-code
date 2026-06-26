@@ -34,3 +34,6 @@ env/
 # Build artifacts
 dist/
 build/
+
+# joern
+workspace/

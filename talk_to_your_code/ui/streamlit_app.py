@@ -129,6 +129,9 @@ if st.button("Ask", type="primary"):
         icon = "✅" if step["status"] == "ok" else "⚠️" if step["status"] == "warning" else "❌"
         st.write(f"{icon} **{step['name']}** — {step['detail']}")
 
+    with st.expander("Query Planner Context", expanded=False):
+        st.text(result["planner_context"])
+
     with st.expander("Query plan", expanded=False):
         st.json(result["plan"])
 
@@ -166,3 +169,12 @@ if st.button("Ask", type="primary"):
 
     with st.expander("Built LLM context", expanded=False):
         st.text(result["context"]["context_text"])
+    
+    with st.expander("Performance profile", expanded=False):
+        total_ms = result.get("total_ms", 0)
+        st.caption(f"Total time: {total_ms / 1000:.2f} seconds")
+
+        timings = result.get("timings", [])
+        if timings:
+            for item in timings:
+                st.write(f"**{item['name']}**: {item['ms'] / 1000:.2f}s")

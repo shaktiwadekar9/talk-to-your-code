@@ -13,6 +13,7 @@ from .parser import MultiLanguageParser
 from .scanner import RepoScanner
 from .schemas import CodeChunk, IntermediateStep
 from .storage import SQLiteStore
+from .graph_summary import generate_graph_repo_summary, load_graph_repo_summary
 
 TOKEN_RE = re.compile(r"[A-Za-z_][A-Za-z0-9_]*|[A-Za-z0-9]+")
 
@@ -74,7 +75,32 @@ class RepoIndexer:
         steps.append(IntermediateStep(name="Embeddings", detail=f"Created {len(embeddings)} local embeddings with {self.settings.embedding_model}."))
 
         self.store.save_index(repo.id, files, chunks, symbols, embeddings)
-        steps.append(IntermediateStep(name="SQLite", detail=f"Saved repo snapshot, chunks, symbols, and embeddings to {self.store.db_path}."))
+        steps.append(
+            IntermediateStep(
+                name="SQLite",
+                detail=f"Saved repo snapshot, chunks, symbols, and embeddings to {self.store.db_path}.",
+            )
+        )
+
+        print(f"Value of self.settings.enable_graph_summary: {self.settings.enable_graph_summary}")
+        if self.settings.enable_graph_summary:
+            try:
+                graph_summary = generate_graph_repo_summary(self.settings, repo_path)
+                steps.append(
+                    IntermediateStep(
+                        name="Graph repo summary",
+                        detail=f"Generated graph-based planner summary with {len(graph_summary)} characters.",
+                    )
+                )
+            except Exception as exc:
+                steps.append(
+                    IntermediateStep(
+                        name="Graph repo summary",
+                        status="warning",
+                        detail=f"Skipped graph summary generation: {exc}",
+                    )
+                )
+
         return repo.id, steps
 
 
@@ -88,10 +114,19 @@ class InMemoryRepoIndex:
     def __init__(self, store: SQLiteStore, repo_id: int):
         self.store = store
         self.repo_id = repo_id
+        self.repo = store.get_repo(repo_id)
         self.chunks, self.embeddings = store.load_chunks_and_embeddings(repo_id)
         self.symbols = store.load_symbols(repo_id)
         self.file_paths = store.load_repo_file_paths(repo_id)
         self.chunk_by_id = {chunk.chunk_id: chunk for chunk in self.chunks}
+
+        if self.repo is not None:
+            self.graph_repo_summary = load_graph_repo_summary(
+                store.settings,
+                self.repo.root_path,
+            )
+        else:
+            self.graph_repo_summary = ""
 
         self._doc_tokens: list[list[str]] = []
         self._doc_counts: list[Counter[str]] = []
@@ -266,21 +301,22 @@ class InMemoryRepoIndex:
         return "\n".join(shown) + suffix
     
     def planner_context(self, max_files: int = 220, max_symbols: int = 350) -> str:
-        """Compact repo context for the query-planner LLM call.
-
-        This gives the planner enough repo awareness to choose likely files,
-        symbols, and retrieval mode without sending full source code before
-        retrieval has happened. Full code snippets are still added later by
-        ContextBuilder after retrieval.
-
-        Args:
-            max_files: Maximum number of file paths to include in the context string.
-            max_symbols: Maximum number of parsed symbols to include in the context string.
-
-        Returns:
-            A formatted string containing a truncated list of file paths and parsed symbols in the repository, 
-            suitable for providing context to the LLM query planner.
         """
+        Compact repo context for the query-planner LLM call.
+
+        Prefer graph-based repo summary when available.
+        Fall back to repo map + symbols if graph summary was not generated.
+        """
+        if self.graph_repo_summary.strip():
+            return "\n".join(
+                [
+                    "Graph-based repository summary for query planning:",
+                    self.graph_repo_summary.strip(),
+                    "",
+                    "Use this summary to choose likely files, symbols, search terms, and retrieval mode.",
+                    "Do not answer the user from this summary alone. Full code snippets will be retrieved later.",
+                ]
+            )
 
         lines: list[str] = [
             "Repository file map:",
@@ -291,7 +327,7 @@ class InMemoryRepoIndex:
 
         shown_symbols = self.symbols[:max_symbols]
         if not shown_symbols:
-            lines.append("<no parsed symbols>")
+            lines.append("")
         else:
             for symbol in shown_symbols:
                 lines.append(
