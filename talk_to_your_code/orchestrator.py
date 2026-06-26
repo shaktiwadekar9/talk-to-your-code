@@ -90,7 +90,7 @@ class CodeChatOrchestrator:
                 name="LLM query plan",
                 detail=(
                     f"Planned as {plan.query_type} with mode {plan.retrieval_mode}. "
-                    f"Planner saw repo map, file paths, and parsed symbols."
+                    f"Planner saw graph repo summary when available, otherwise repo map and parsed symbols."
                     f"Planner context chars: {len(planner_context)} and tokens: ~{planner_context_tokens}."
                 ),
             )

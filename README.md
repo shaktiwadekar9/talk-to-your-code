@@ -173,6 +173,48 @@ export TYC_EMBEDDING_MODEL=nomic-embed-text
 
 ---
 
+## Graph-based planner summary (optional but recommended)
+
+The planner can build a richer repository summary for query planning. This feature uses Ollama through the optional `code-graph-ai-summarizer` package and also requires a running Joern server.
+
+### What you need
+
+- Ollama running locally
+- A model available to Ollama, such as `qwen2.5-coder:7b`
+- A Joern server reachable from your machine
+
+### Setup
+
+1. Start Ollama and pull the model:
+
+```bash
+ollama serve
+ollama pull qwen2.5-coder:7b
+```
+
+2. Enable graph-summary support and point it at your Joern instance:
+
+```bash
+export TYC_ENABLE_GRAPH_SUMMARY=true
+export TYC_JOERN_SERVER=localhost:8080
+```
+
+3. If you want to use the same defaults as the project, copy [.env.example](.env.example) to `.env` and adjust the values there.
+
+4. Start a Joern server that the summarizer can reach. For example, with Docker:
+
+```bash
+docker run --rm -p 8080:8080 ghcr.io/joernio/joern:latest
+```
+
+If your Joern instance is running on a different host or port, set `TYC_JOERN_SERVER` to that address.
+
+5. Re-run ingestion after the above is available. The graph summary is generated during ingestion and stored under `~/.talk_to_your_code/graph_summaries/<repo-name>/`.
+
+If graph-summary generation is unavailable, the app will fall back to the regular repo map and symbol-based context.
+
+---
+
 ## Setup with uv
 
 From the project root:
