@@ -1,6 +1,12 @@
 # Talk To Your Code
 
-Local chatbot for talking to a local codebase using **Ollama**, **SQLite**, **FastAPI**, and **Streamlit**.
+AI chatbot for talking to a local codebase using **Ollama**, **SQLite**, **FastAPI**, and **Streamlit**.
+
+---
+
+## Explainer Article
+
+[Don’t Burn Claude Tokens: A Free, Local, Secure Way to Explore Your Code First](https://medium.com/towards-artificial-intelligence/dont-burn-claude-tokens-a-free-local-secure-way-to-explore-your-code-first-ac8d8dfe3178)
 
 ---
 
@@ -201,13 +207,11 @@ export TYC_JOERN_SERVER=localhost:8080
 
 3. If you want to use the same defaults as the project, copy [.env.example](.env.example) to `.env` and adjust the values there.
 
-4. Start a Joern server that the summarizer can reach. For example, with Docker:
+4. Start a Joern server that the summarizer can reach. In another terminal run:
 
 ```bash
-docker run --rm -p 8080:8080 ghcr.io/joernio/joern:latest
+joern --server
 ```
-
-If your Joern instance is running on a different host or port, set `TYC_JOERN_SERVER` to that address.
 
 5. Re-run ingestion after the above is available. The graph summary is generated during ingestion and stored under `~/.talk_to_your_code/graph_summaries/<repo-name>/`.
 
