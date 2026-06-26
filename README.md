@@ -2,6 +2,8 @@
 
 AI chatbot for talking to a local codebase using **Ollama**, **SQLite**, **FastAPI**, and **Streamlit**.
 
+[06/26/2026] Now graph-based AI repo summarizer added. [code-graph-ai-summarizer](https://github.com/shaktiwadekar9/code-graph-ai-summarizer)
+
 ---
 
 ## Explainer Article
